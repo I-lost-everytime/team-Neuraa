@@ -3,422 +3,745 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aptos Land Registry Interface</title>
+    <title>National Land Registry Portal - Government of India</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        'aptos-blue': '#61e9ff',
-                        'aptos-dark': '#1e293b',
-                    }
-                }
-            }
-        }
-    </script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; }
+        * { font-family: 'Inter', sans-serif; }
+        .govt-header { 
+            background: linear-gradient(135deg, #FF9933 0%, #FF9933 33.33%, #FFFFFF 33.33%, #FFFFFF 66.66%, #138808 66.66%, #138808 100%);
+            height: 8px;
+        }
+        .emblem-shadow { box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .card-govt { 
+            border: 1px solid #d1d5db; 
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .loader { 
+            border: 3px solid #f3f3f3; 
+            border-top: 3px solid #1e40af; 
+            border-radius: 50%; 
+            width: 20px; 
+            height: 20px; 
+            animation: spin 1s linear infinite; 
+            display: inline-block; 
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+        }
     </style>
 </head>
-<body class="bg-gray-100 min-h-screen p-4 sm:p-8">
+<body class="bg-gray-50">
 
-    <div class="max-w-7xl mx-auto bg-white shadow-xl rounded-2xl p-6 sm:p-10">
-        <header class="text-center mb-10">
-            <h1 class="text-4xl font-extrabold text-gray-800">🏛️ Aptos Land Registry DApp</h1>
-            <p class="text-md text-gray-500 mt-2">Interact with the deployed contract on <strong class="text-green-600">Testnet</strong></p>
-            <p class="text-lg text-red-600 font-bold mt-1">⚠️ Ensure your wallet is set to Aptos Testnet</p>
-        </header>
+    <!-- National Flag Strip -->
+    <div class="govt-header"></div>
 
-        <!-- Configuration -->
-        <div class="bg-aptos-dark text-white p-4 rounded-xl mb-6">
-            <p class="text-sm font-mono break-all">
-                <strong>Module Address:</strong> <span id="module-address">0x9be54afa644bde0f34ec4284268ea050f8432e6ad17c65548610a01d612da398</span>
-            </p>
-            <p class="text-sm font-mono"><strong>Network:</strong> Testnet</p>
+    <!-- Government Header -->
+    <header class="bg-white border-b-2 border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                    <!-- National Emblem Placeholder -->
+                    <div class="w-16 h-16 bg-blue-900 rounded-full flex items-center justify-center text-white font-bold emblem-shadow">
+                        <svg class="w-10 h-10" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h1 class="text-xl md:text-2xl font-bold text-gray-800">Digital Land Registry Portal</h1>
+                        <p class="text-sm text-gray-600">Government of India | भारत सरकार</p>
+                        <p class="text-xs text-gray-500">Department of Land Resources</p>
+                    </div>
+                </div>
+                <div class="hidden md:flex items-center gap-3">
+                    <div class="text-right text-sm">
+                        <p class="text-gray-600">Accessibility</p>
+                        <div class="flex gap-2 mt-1">
+                            <button class="px-2 py-1 bg-gray-200 hover:bg-gray-300 rounded text-xs font-semibold">A-</button>
+                            <button class="px-2 py-1 bg-gray-200 hover:bg-gray-300 rounded text-xs font-semibold">A</button>
+                            <button class="px-2 py-1 bg-gray-200 hover:bg-gray-300 rounded text-xs font-semibold">A+</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Breadcrumb & Wallet Section -->
+    <div class="bg-blue-50 border-b border-blue-100">
+        <div class="max-w-7xl mx-auto px-4 py-3">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
+                <div class="text-sm text-gray-600">
+                    <span class="hover:text-blue-700 cursor-pointer">Home</span> / 
+                    <span class="hover:text-blue-700 cursor-pointer">Services</span> / 
+                    <span class="font-semibold text-gray-800">Land Registry</span>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div id="network-badge" class="hidden px-3 py-1 bg-green-100 text-green-800 rounded text-xs font-semibold border border-green-300">
+                        <span id="network-name">Testnet</span>
+                    </div>
+                    <button id="connect-wallet-btn" class="px-5 py-2 bg-blue-700 hover:bg-blue-800 text-white text-sm font-semibold rounded shadow">
+                        Connect Digital Wallet
+                    </button>
+                    <div id="wallet-info" class="hidden flex items-center gap-2 bg-white px-4 py-2 rounded border border-gray-300">
+                        <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+                        <div class="text-sm">
+                            <p class="text-xs text-gray-500">Connected</p>
+                            <p id="wallet-address" class="font-semibold text-gray-800"></p>
+                            <p id="user-role" class="text-xs font-medium text-blue-700"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-4 py-6">
+        
+        <!-- Important Notice -->
+        <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6 card-govt">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-yellow-700" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <h3 class="text-sm font-semibold text-yellow-800">Important Notice</h3>
+                    <p class="text-sm text-yellow-700 mt-1">This is a blockchain-based testnet deployment. Always verify transaction details before signing.</p>
+                </div>
+            </div>
         </div>
 
-        <!-- Wallet Connection -->
-        <div class="mb-10 text-center">
-            <button id="connect-button" 
-                    class="px-8 py-3 bg-aptos-blue hover:bg-aptos-blue/80 text-gray-900 font-bold rounded-xl transition shadow-md">
-                Connect Wallet
-            </button>
-            <div id="account-info" class="mt-4 text-lg text-gray-700 font-semibold hidden">
-                <p>Connected: <span id="wallet-address-display"></span></p>
-                <p>Role: <span id="user-role-display" class="text-red-500">None</span></p>
-                <p id="wallet-network-display" class="text-sm font-medium mt-1"></p>
+        <!-- System Configuration -->
+        <div class="bg-white rounded border border-gray-300 p-5 mb-6 card-govt">
+            <h2 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                <svg class="w-5 h-5 text-blue-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                System Configuration
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                <div class="border border-gray-200 rounded p-3 bg-gray-50">
+                    <p class="text-xs text-gray-500 mb-1 font-semibold">Smart Contract Address</p>
+                    <p id="module-address" class="font-mono text-xs text-gray-800 break-all">0x9be54afa644bde0f34ec4284268ea050f8432e6ad17c65548610a01d612da398</p>
+                </div>
+                <div class="border border-gray-200 rounded p-3 bg-gray-50">
+                    <p class="text-xs text-gray-500 mb-1 font-semibold">Network Status</p>
+                    <p class="text-xs font-semibold text-gray-800">Aptos Testnet</p>
+                    <a href="https://explorer.aptoslabs.com/?network=testnet" target="_blank" class="text-xs text-blue-700 hover:underline">View on Explorer →</a>
+                </div>
             </div>
         </div>
 
-        <!-- Operations Grid -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-            
-            <!-- 1. Register Land (Patwari) -->
-            <div class="bg-green-50 p-6 rounded-xl border-2 border-green-200">
-                <h2 class="text-xl font-semibold mb-4 text-gray-800">📝 Register Land (Patwari)</h2>
-                <input type="text" id="owner-wallet" class="w-full border rounded-lg p-2 mb-3" placeholder="Owner Wallet Address (0x...)">
-                <input type="text" id="coordinates-cid" class="w-full border rounded-lg p-2 mb-3" placeholder="Coordinates CID (IPFS hash)">
-                <input type="text" id="document-cid" class="w-full border rounded-lg p-2 mb-3" placeholder="Document CID (IPFS hash)">
-                <input type="number" id="area-sqm" class="w-full border rounded-lg p-2 mb-3" placeholder="Area (square meters)">
-                <button id="register-button" class="w-full py-2 bg-green-600 hover:bg-green-500 text-white font-semibold rounded-lg" disabled>
-                    Register Land
+        <!-- Tab Navigation -->
+        <div class="bg-white rounded border border-gray-300 mb-6 card-govt overflow-hidden">
+            <div class="flex overflow-x-auto">
+                <button class="tab-btn flex-1 px-6 py-4 text-sm font-semibold border-r border-gray-200 hover:bg-gray-50 transition-colors" data-tab="operations">
+                    Land Operations
                 </button>
-                <div id="register-result" class="mt-4 p-2 bg-white border rounded-lg text-xs font-mono break-all min-h-[3rem]">
-                    Result will appear here...
-                </div>
-            </div>
-
-            <!-- 2. Approve Land (Tehsildar) -->
-            <div class="bg-blue-50 p-6 rounded-xl border-2 border-blue-200">
-                <h2 class="text-xl font-semibold mb-4 text-gray-800">✅ Approve Land (Tehsildar)</h2>
-                <input type="number" id="approve-land-id" class="w-full border rounded-lg p-2 mb-3" placeholder="Land ID" min="1">
-                <button id="approve-button" class="w-full py-2 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-lg" disabled>
-                    Approve Land
+                <button class="tab-btn flex-1 px-6 py-4 text-sm font-semibold border-r border-gray-200 hover:bg-gray-50 transition-colors" data-tab="explorer">
+                    Search Records
                 </button>
-                <div id="approve-result" class="mt-4 p-2 bg-white border rounded-lg text-xs font-mono break-all min-h-[3rem]">
-                    Result will appear here...
-                </div>
-            </div>
-
-            <!-- 3. Finalize Land (DLR) -->
-            <div class="bg-purple-50 p-6 rounded-xl border-2 border-purple-200">
-                <h2 class="text-xl font-semibold mb-4 text-gray-800">🎯 Finalize Land (DLR)</h2>
-                <input type="number" id="finalize-land-id" class="w-full border rounded-lg p-2 mb-3" placeholder="Land ID" min="1">
-                <button id="finalize-button" class="w-full py-2 bg-purple-600 hover:bg-purple-500 text-white font-semibold rounded-lg" disabled>
-                    Finalize Land
+                <button class="tab-btn flex-1 px-6 py-4 text-sm font-semibold border-r border-gray-200 hover:bg-gray-50 transition-colors" data-tab="admin">
+                    Administration
                 </button>
-                <div id="finalize-result" class="mt-4 p-2 bg-white border rounded-lg text-xs font-mono break-all min-h-[3rem]">
-                    Result will appear here...
-                </div>
-            </div>
-
-            <!-- 4. Transfer Land (Owner) -->
-            <div class="bg-yellow-50 p-6 rounded-xl border-2 border-yellow-200">
-                <h2 class="text-xl font-semibold mb-4 text-gray-800">🔄 Transfer Land (Owner)</h2>
-                <input type="number" id="transfer-land-id" class="w-full border rounded-lg p-2 mb-3" placeholder="Land ID" min="1">
-                <input type="text" id="new-owner" class="w-full border rounded-lg p-2 mb-3" placeholder="New Owner Address (0x...)">
-                <button id="transfer-button" class="w-full py-2 bg-yellow-600 hover:bg-yellow-500 text-white font-semibold rounded-lg" disabled>
-                    Transfer Ownership
+                <button class="tab-btn flex-1 px-6 py-4 text-sm font-semibold hover:bg-gray-50 transition-colors" data-tab="history">
+                    My Properties
                 </button>
-                <div id="transfer-result" class="mt-4 p-2 bg-white border rounded-lg text-xs font-mono break-all min-h-[3rem]">
-                    Result will appear here...
-                </div>
             </div>
-
-            <!-- 5. Assign Role (DLR Admin) -->
-            <div class="bg-red-50 p-6 rounded-xl border-2 border-red-200">
-                <h2 class="text-xl font-semibold mb-4 text-gray-800">👤 Assign Role (DLR)</h2>
-                <input type="text" id="role-address" class="w-full border rounded-lg p-2 mb-3" placeholder="Official Address (0x...)">
-                <select id="role-select" class="w-full border rounded-lg p-2 mb-3">
-                    <option value="1">Patwari (1)</option>
-                    <option value="2">Tehsildar (2)</option>
-                    <option value="3">DLR (3)</option>
-                </select>
-                <button id="assign-role-button" class="w-full py-2 bg-red-600 hover:bg-red-500 text-white font-semibold rounded-lg" disabled>
-                    Assign Role
-                </button>
-                <div id="role-result" class="mt-4 p-2 bg-white border rounded-lg text-xs font-mono break-all min-h-[3rem]">
-                    Result will appear here...
-                </div>
-            </div>
-
-            <!-- 6. View Land Details -->
-            <div class="bg-gray-50 p-6 rounded-xl border-2 border-gray-200">
-                <h2 class="text-xl font-semibold mb-4 text-gray-800">🔍 View Land Details</h2>
-                <input type="number" id="view-land-id" class="w-full border rounded-lg p-2 mb-3" placeholder="Land ID" min="1">
-                <button id="view-button" class="w-full py-2 bg-gray-700 hover:bg-gray-600 text-white font-semibold rounded-lg" disabled>
-                    Get Details
-                </button>
-                <div id="view-result" class="mt-4 p-3 bg-white border rounded-lg text-xs font-mono break-all min-h-[8rem] overflow-auto">
-                    Data will appear here...
-                </div>
-            </div>
-
         </div>
 
-        <!-- Status Messages -->
-        <div id="status-message" class="fixed bottom-4 right-4 p-4 rounded-lg shadow-lg text-white font-semibold hidden z-50"></div>
+        <!-- Operations Tab -->
+        <div id="tab-operations" class="tab-content">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                
+                <!-- Register Land -->
+                <div class="bg-white rounded border border-gray-300 p-5 card-govt">
+                    <div class="flex items-center gap-3 mb-4 pb-3 border-b border-gray-200">
+                        <div class="bg-green-100 p-2 rounded">
+                            <svg class="w-5 h-5 text-green-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-base font-bold text-gray-800">Register New Land Parcel</h3>
+                            <p class="text-xs text-gray-600">Authorized Personnel: Patwari</p>
+                        </div>
+                    </div>
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-700 mb-1">Owner Wallet Address *</label>
+                            <input type="text" id="reg-owner" placeholder="0x..." class="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-700 mb-1">Coordinates CID (IPFS) *</label>
+                            <input type="text" id="reg-coords" placeholder="QmXxx..." class="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-700 mb-1">Document CID (IPFS) *</label>
+                            <input type="text" id="reg-doc" placeholder="QmXxx..." class="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-700 mb-1">Area (Square Meters) *</label>
+                            <input type="number" id="reg-area" placeholder="1000" class="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600">
+                        </div>
+                        <button id="register-btn" class="w-full py-3 bg-green-700 hover:bg-green-800 text-white text-sm font-semibold rounded shadow disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                            Submit Registration
+                        </button>
+                        <div id="register-result" class="p-3 bg-gray-50 border border-gray-200 rounded text-xs font-mono text-gray-600 min-h-[60px]">
+                            Awaiting transaction submission...
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Approve Land -->
+                <div class="bg-white rounded border border-gray-300 p-5 card-govt">
+                    <div class="flex items-center gap-3 mb-4 pb-3 border-b border-gray-200">
+                        <div class="bg-blue-100 p-2 rounded">
+                            <svg class="w-5 h-5 text-blue-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-base font-bold text-gray-800">Approve Land Registration</h3>
+                            <p class="text-xs text-gray-600">Authorized Personnel: Tehsildar</p>
+                        </div>
+                    </div>
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-700 mb-1">Land Record ID *</label>
+                            <input type="number" id="approve-id" placeholder="Enter Land ID" class="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600">
+                        </div>
+                        <button id="approve-btn" class="w-full py-3 bg-blue-700 hover:bg-blue-800 text-white text-sm font-semibold rounded shadow disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                            Approve Registration
+                        </button>
+                        <div id="approve-result" class="p-3 bg-gray-50 border border-gray-200 rounded text-xs font-mono text-gray-600 min-h-[60px]">
+                            Awaiting transaction submission...
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Finalize Land -->
+                <div class="bg-white rounded border border-gray-300 p-5 card-govt">
+                    <div class="flex items-center gap-3 mb-4 pb-3 border-b border-gray-200">
+                        <div class="bg-purple-100 p-2 rounded">
+                            <svg class="w-5 h-5 text-purple-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-base font-bold text-gray-800">Finalize Land Record</h3>
+                            <p class="text-xs text-gray-600">Authorized Personnel: DLR</p>
+                        </div>
+                    </div>
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-700 mb-1">Land Record ID *</label>
+                            <input type="number" id="finalize-id" placeholder="Enter Land ID" class="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600">
+                        </div>
+                        <button id="finalize-btn" class="w-full py-3 bg-purple-700 hover:bg-purple-800 text-white text-sm font-semibold rounded shadow disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                            Finalize Record
+                        </button>
+                        <div id="finalize-result" class="p-3 bg-gray-50 border border-gray-200 rounded text-xs font-mono text-gray-600 min-h-[60px]">
+                            Awaiting transaction submission...
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Transfer Land -->
+                <div class="bg-white rounded border border-gray-300 p-5 card-govt">
+                    <div class="flex items-center gap-3 mb-4 pb-3 border-b border-gray-200">
+                        <div class="bg-orange-100 p-2 rounded">
+                            <svg class="w-5 h-5 text-orange-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-base font-bold text-gray-800">Transfer Ownership</h3>
+                            <p class="text-xs text-gray-600">Authorized: Property Owner</p>
+                        </div>
+                    </div>
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-700 mb-1">Land Record ID *</label>
+                            <input type="number" id="transfer-id" placeholder="Enter Land ID" class="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-700 mb-1">New Owner Address *</label>
+                            <input type="text" id="transfer-new-owner" placeholder="0x..." class="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600">
+                        </div>
+                        <button id="transfer-btn" class="w-full py-3 bg-orange-700 hover:bg-orange-800 text-white text-sm font-semibold rounded shadow disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                            Transfer Ownership
+                        </button>
+                        <div id="transfer-result" class="p-3 bg-gray-50 border border-gray-200 rounded text-xs font-mono text-gray-600 min-h-[60px]">
+                            Awaiting transaction submission...
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Explorer Tab -->
+        <div id="tab-explorer" class="tab-content hidden">
+            <div class="bg-white rounded border border-gray-300 p-6 card-govt">
+                <h3 class="text-lg font-bold text-gray-800 mb-1">Search Land Records</h3>
+                <p class="text-sm text-gray-600 mb-5">Enter a valid Land ID to retrieve complete property details</p>
+                <div class="flex gap-3 mb-6">
+                    <input type="number" id="explorer-id" placeholder="Enter Land Record ID" class="flex-1 px-4 py-3 border border-gray-300 rounded text-sm focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600">
+                    <button id="explorer-btn" class="px-8 py-3 bg-blue-700 hover:bg-blue-800 text-white text-sm font-semibold rounded shadow disabled:opacity-50" disabled>
+                        Search
+                    </button>
+                </div>
+                <div id="explorer-result" class="bg-gray-50 border border-gray-200 rounded p-6 min-h-[300px]">
+                    <p class="text-gray-500 text-sm text-center py-12">Enter a Land Record ID and click Search to view property details</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Admin Panel Tab -->
+        <div id="tab-admin" class="tab-content hidden">
+            <div class="bg-white rounded border border-gray-300 p-6 card-govt">
+                <div class="border-l-4 border-red-500 bg-red-50 p-4 mb-5">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <svg class="h-5 w-5 text-red-700" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <h3 class="text-sm font-semibold text-red-800">Restricted Access</h3>
+                            <p class="text-sm text-red-700 mt-1">Role assignment is restricted to District Land Registrar (DLR) only</p>
+                        </div>
+                    </div>
+                </div>
+                <h3 class="text-lg font-bold text-gray-800 mb-1">Role Management</h3>
+                <p class="text-sm text-gray-600 mb-5">Assign official roles to authorized personnel</p>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-700 mb-1">Official Wallet Address *</label>
+                        <input type="text" id="admin-address" placeholder="0x..." class="w-full px-4 py-3 border border-gray-300 rounded text-sm focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-700 mb-1">Assign Role *</label>
+                        <select id="admin-role" class="w-full px-4 py-3 border border-gray-300 rounded text-sm focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600">
+                            <option value="1">Patwari (Field Officer)</option>
+                            <option value="2">Tehsildar (Approval Authority)</option>
+                            <option value="3">DLR (District Land Registrar)</option>
+                        </select>
+                    </div>
+                    <button id="admin-assign-btn" class="w-full py-3 bg-red-700 hover:bg-red-800 text-white text-sm font-semibold rounded shadow disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                        Assign Role
+                    </button>
+                    <div id="admin-result" class="p-3 bg-gray-50 border border-gray-200 rounded text-xs font-mono text-gray-600 min-h-[60px]">
+                        Awaiting transaction submission...
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- My Lands Tab -->
+        <div id="tab-history" class="tab-content hidden">
+            <div class="bg-white rounded border border-gray-300 p-6 card-govt">
+                <div class="flex justify-between items-center mb-5">
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-800">My Property Records</h3>
+                        <p class="text-sm text-gray-600">View all land parcels registered under your ownership</p>
+                    </div>
+                    <button id="refresh-lands-btn" class="px-5 py-2 bg-blue-700 hover:bg-blue-800 text-white text-sm font-semibold rounded shadow disabled:opacity-50" disabled>
+                        Refresh
+                    </button>
+                </div>
+                <div id="my-lands-list" class="space-y-3 min-h-[300px]">
+                    <p class="text-gray-500 text-sm text-center py-12">Connect your wallet to view property records</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white mt-12">
+        <div class="max-w-7xl mx-auto px-4 py-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
+                <div>
+                    <h4 class="font-bold mb-3">About This Portal</h4>
+                    <p class="text-gray-400">Blockchain-powered land registry system for transparent and secure property management.</p>
+                </div>
+                <div>
+                    <h4 class="font-bold mb-3">Quick Links</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="#" class="hover:text-white">User Guide</a></li>
+                        <li><a href="#" class="hover:text-white">Privacy Policy</a></li>
+                        <li><a href="#" class="hover:text-white">Terms of Service</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-bold mb-3">Contact Support</h4>
+                    <p class="text-gray-400">Email: support@landregistry.gov.in</p>
+                    <p class="text-gray-400">Helpline: 1800-XXX-XXXX</p>
+                </div>
+            </div>
+            <div class="border-t border-gray-700 mt-6 pt-6 text-center text-sm text-gray-400">
+                <p>© 2024 Government of India. All rights reserved. | Website content managed by Department of Land Resources</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-6 right-6 px-6 py-4 rounded shadow-lg text-white font-semibold hidden z-50">
+        <span id="toast-message"></span>
     </div>
 
     <script type="module">
         import { AptosClient } from 'https://esm.sh/aptos@1.17.0';
 
-        // Constants
         const MODULE_ADDRESS = document.getElementById('module-address').textContent;
         const MODULE_NAME = 'landregistry';
-        const FULL_MODULE_ID = `${MODULE_ADDRESS}::${MODULE_NAME}`;
+        const FULL_MODULE = `${MODULE_ADDRESS}::${MODULE_NAME}`;
         const TESTNET_URL = 'https://fullnode.testnet.aptoslabs.com/v1';
 
-        const ROLE_MAP = {
-            0: 'None',
-            1: 'Patwari',
-            2: 'Tehsildar',
-            3: 'DLR (Admin)',
-        };
+        const ROLE_MAP = { 0: 'None', 1: 'Patwari', 2: 'Tehsildar', 3: 'DLR' };
+        const STATUS_MAP = { 1: 'Provisional', 2: 'Approved', 3: 'Finalized', 99: 'Disputed' };
 
-        const STATUS_MAP = {
-            1: 'Provisional',
-            2: 'Approved',
-            3: 'Finalized',
-            99: 'Disputed'
-        };
-
-        // Global state
-        let aptosClient = new AptosClient(TESTNET_URL);
-        let walletAddress = null;
+        let client = new AptosClient(TESTNET_URL);
+        let wallet = null;
         let userRole = 0;
 
-        // Utility functions
-        function showStatus(message, isError = false) {
-            const statusEl = document.getElementById('status-message');
-            statusEl.textContent = message;
-            statusEl.className = `fixed bottom-4 right-4 p-4 rounded-lg shadow-lg text-white font-semibold ${isError ? 'bg-red-600' : 'bg-green-600'} z-50`;
-            setTimeout(() => statusEl.classList.add('hidden'), 5000);
+        function toast(msg, isError = false) {
+            const el = document.getElementById('toast');
+            const msgEl = document.getElementById('toast-message');
+            msgEl.textContent = msg;
+            el.className = `fixed bottom-6 right-6 px-6 py-4 rounded shadow-lg text-white font-semibold z-50 ${isError ? 'bg-red-600' : 'bg-green-600'}`;
+            el.classList.remove('hidden');
+            setTimeout(() => el.classList.add('hidden'), 4000);
         }
 
-        function isValidAddress(addr) {
+        function isValidAddr(addr) {
             return /^0x[0-9a-fA-F]{64}$/.test(addr);
         }
 
-        async function getUserRole(addr) {
+        async function getRole(addr) {
             try {
-                const response = await aptosClient.view({
-                    function: `${FULL_MODULE_ID}::get_user_role`,
+                const res = await client.view({
+                    function: `${FULL_MODULE}::get_user_role`,
                     type_arguments: [],
                     arguments: [addr],
                 });
-                return parseInt(response[0], 10);
-            } catch (error) {
-                console.warn("Failed to fetch user role:", error);
+                return parseInt(res[0], 10);
+            } catch {
                 return 0;
             }
         }
 
-        function updateButtonStates() {
-            const isConnected = walletAddress !== null;
-            
-            document.getElementById('view-button').disabled = !isConnected;
-            document.getElementById('register-button').disabled = !(isConnected && userRole >= 1);
-            document.getElementById('approve-button').disabled = !(isConnected && userRole >= 2);
-            document.getElementById('finalize-button').disabled = !(isConnected && userRole >= 3);
-            document.getElementById('transfer-button').disabled = !isConnected;
-            document.getElementById('assign-role-button').disabled = !(isConnected && userRole >= 3);
+        function updateButtons() {
+            const connected = wallet !== null;
+            document.getElementById('register-btn').disabled = !(connected && userRole >= 1);
+            document.getElementById('approve-btn').disabled = !(connected && userRole >= 2);
+            document.getElementById('finalize-btn').disabled = !(connected && userRole >= 3);
+            document.getElementById('transfer-btn').disabled = !connected;
+            document.getElementById('admin-assign-btn').disabled = !(connected && userRole >= 3);
+            document.getElementById('explorer-btn').disabled = !connected;
+            document.getElementById('refresh-lands-btn').disabled = !connected;
         }
 
-        async function submitTransaction(functionName, args, resultDiv, button) {
-            if (!window.aptos || !walletAddress) {
-                showStatus("Please connect your wallet first.", true);
+        async function txn(fn, args, resultDiv, btn) {
+            if (!window.aptos || !wallet) {
+                toast("Please connect your wallet first", true);
                 return;
             }
 
-            resultDiv.textContent = 'Submitting transaction...';
-            button.disabled = true;
+            resultDiv.innerHTML = '<div class="flex items-center gap-2"><div class="loader"></div> Submitting transaction...</div>';
+            btn.disabled = true;
 
             try {
-                const transaction = {
+                const tx = {
                     type: "entry_function_payload",
-                    function: `${FULL_MODULE_ID}::${functionName}`,
+                    function: `${FULL_MODULE}::${fn}`,
                     type_arguments: [],
                     arguments: args,
                 };
 
-                const pendingTx = await window.aptos.signAndSubmitTransaction(transaction);
-                resultDiv.textContent = `Waiting for confirmation: ${pendingTx.hash}`;
-                showStatus("Transaction submitted!");
+                const pending = await window.aptos.signAndSubmitTransaction(tx);
+                resultDiv.innerHTML = `<div class="flex items-center gap-2"><div class="loader"></div> Confirming: ${pending.hash.substring(0, 12)}...</div>`;
+                toast("Transaction submitted successfully!");
 
-                const confirmedTx = await aptosClient.waitForTransactionWithResult(pendingTx.hash);
+                const confirmed = await client.waitForTransactionWithResult(pending.hash);
                 
-                if (confirmedTx.success) {
-                    resultDiv.innerHTML = `<span class="text-green-600 font-bold">SUCCESS!</span><br>Hash: <a href="https://explorer.aptoslabs.com/txn/${pendingTx.hash}?network=testnet" target="_blank" class="text-blue-600 hover:underline">${pendingTx.hash.substring(0, 16)}...</a>`;
-                    showStatus("Transaction confirmed!");
+                if (confirmed.success) {
+                    resultDiv.innerHTML = `<span class="text-green-700 font-bold">✓ SUCCESS</span><br><a href="https://explorer.aptoslabs.com/txn/${pending.hash}?network=testnet" target="_blank" class="text-blue-700 hover:underline text-xs">${pending.hash.substring(0, 20)}... View on Explorer →</a>`;
+                    toast("Transaction confirmed successfully!");
                 } else {
-                    resultDiv.textContent = `Failed: ${confirmedTx.vm_status}`;
-                    showStatus("Transaction failed.", true);
+                    resultDiv.textContent = `Transaction failed: ${confirmed.vm_status}`;
+                    toast("Transaction failed", true);
                 }
-            } catch (error) {
-                console.error("Transaction error:", error);
-                resultDiv.textContent = `Error: ${error.message || error.toString()}`;
-                showStatus("Transaction failed.", true);
+            } catch (err) {
+                console.error(err);
+                resultDiv.textContent = `Error: ${err.message || err.toString()}`;
+                toast("Transaction error occurred", true);
             } finally {
-                button.disabled = false;
-                updateButtonStates();
+                btn.disabled = false;
+                updateButtons();
             }
         }
 
-        // Event Handlers
-        document.getElementById('connect-button').addEventListener('click', async () => {
-            if (!window.aptos) {
-                showStatus("Please install Petra or Martian wallet!", true);
-                return;
-            }
-
-            try {
-                const response = await window.aptos.connect();
-                walletAddress = response.address;
-                userRole = await getUserRole(walletAddress);
-
-                document.getElementById('connect-button').classList.add('hidden');
-                document.getElementById('account-info').classList.remove('hidden');
-                document.getElementById('wallet-address-display').textContent = `${walletAddress.substring(0, 8)}...${walletAddress.slice(-6)}`;
-                document.getElementById('user-role-display').textContent = ROLE_MAP[userRole];
-                document.getElementById('user-role-display').className = userRole > 0 ? 'text-green-600' : 'text-red-500';
+        // Tab System
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tab = btn.dataset.tab;
+                document.querySelectorAll('.tab-btn').forEach(b => {
+                    b.classList.remove('bg-blue-700', 'text-white', 'border-b-4', 'border-blue-700');
+                    b.classList.add('text-gray-700');
+                });
+                btn.classList.add('bg-blue-700', 'text-white', 'border-b-4', 'border-blue-700');
+                btn.classList.remove('text-gray-700');
                 
-                const network = await window.aptos.network();
-                document.getElementById('wallet-network-display').textContent = `Network: ${network.name || 'Testnet'}`;
-                document.getElementById('wallet-network-display').className = network.name?.toLowerCase() === 'testnet' ? 'text-green-600 text-sm' : 'text-red-600 text-sm';
-
-                updateButtonStates();
-                showStatus(`Connected! Role: ${ROLE_MAP[userRole]}`);
-            } catch (error) {
-                console.error("Connection error:", error);
-                showStatus("Connection failed.", true);
-            }
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+                document.getElementById(`tab-${tab}`).classList.remove('hidden');
+            });
         });
 
-        document.getElementById('register-button').addEventListener('click', async () => {
-            const ownerWallet = document.getElementById('owner-wallet').value.trim();
-            const coordinatesCid = document.getElementById('coordinates-cid').value.trim();
-            const documentCid = document.getElementById('document-cid').value.trim();
-            const areaSqm = document.getElementById('area-sqm').value.trim();
+        // Initialize first tab as active
+        document.querySelector('.tab-btn').classList.add('bg-blue-700', 'text-white', 'border-b-4', 'border-blue-700');
 
-            if (!ownerWallet || !isValidAddress(ownerWallet)) {
-                showStatus("Invalid owner wallet address!", true);
+        // Connect Wallet
+        document.getElementById('connect-wallet-btn').addEventListener('click', async () => {
+            if (!window.aptos) {
+                toast("Please install Petra or Martian wallet extension!", true);
                 return;
             }
-            if (!coordinatesCid || !documentCid || !areaSqm) {
-                showStatus("Please fill all fields!", true);
-                return;
-            }
-
-            await submitTransaction(
-                'register_land',
-                [ownerWallet, coordinatesCid, documentCid, areaSqm],
-                document.getElementById('register-result'),
-                document.getElementById('register-button')
-            );
-        });
-
-        document.getElementById('approve-button').addEventListener('click', async () => {
-            const landId = document.getElementById('approve-land-id').value.trim();
-            if (!landId || landId <= 0) {
-                showStatus("Invalid Land ID!", true);
-                return;
-            }
-
-            await submitTransaction(
-                'approve_land',
-                [landId],
-                document.getElementById('approve-result'),
-                document.getElementById('approve-button')
-            );
-        });
-
-        document.getElementById('finalize-button').addEventListener('click', async () => {
-            const landId = document.getElementById('finalize-land-id').value.trim();
-            if (!landId || landId <= 0) {
-                showStatus("Invalid Land ID!", true);
-                return;
-            }
-
-            await submitTransaction(
-                'finalize_land',
-                [landId],
-                document.getElementById('finalize-result'),
-                document.getElementById('finalize-button')
-            );
-        });
-
-        document.getElementById('transfer-button').addEventListener('click', async () => {
-            const landId = document.getElementById('transfer-land-id').value.trim();
-            const newOwner = document.getElementById('new-owner').value.trim();
-
-            if (!landId || landId <= 0) {
-                showStatus("Invalid Land ID!", true);
-                return;
-            }
-            if (!newOwner || !isValidAddress(newOwner)) {
-                showStatus("Invalid new owner address!", true);
-                return;
-            }
-
-            await submitTransaction(
-                'transfer_land',
-                [landId, newOwner],
-                document.getElementById('transfer-result'),
-                document.getElementById('transfer-button')
-            );
-        });
-
-        document.getElementById('assign-role-button').addEventListener('click', async () => {
-            const address = document.getElementById('role-address').value.trim();
-            const roleId = document.getElementById('role-select').value;
-
-            if (!address || !isValidAddress(address)) {
-                showStatus("Invalid address!", true);
-                return;
-            }
-
-            await submitTransaction(
-                'assign_role',
-                [address, roleId],
-                document.getElementById('role-result'),
-                document.getElementById('assign-role-button')
-            );
-        });
-
-        document.getElementById('view-button').addEventListener('click', async () => {
-            const landId = document.getElementById('view-land-id').value.trim();
-            if (!landId || landId <= 0) {
-                showStatus("Invalid Land ID!", true);
-                return;
-            }
-
-            const resultDiv = document.getElementById('view-result');
-            resultDiv.textContent = 'Fetching data...';
 
             try {
-                const response = await aptosClient.view({
-                    function: `${FULL_MODULE_ID}::get_land_details`,
+                const res = await window.aptos.connect();
+                wallet = res.address;
+                userRole = await getRole(wallet);
+
+                document.getElementById('connect-wallet-btn').classList.add('hidden');
+                document.getElementById('wallet-info').classList.remove('hidden');
+                document.getElementById('network-badge').classList.remove('hidden');
+                document.getElementById('wallet-address').textContent = `${wallet.substring(0, 6)}...${wallet.slice(-4)}`;
+                document.getElementById('user-role').textContent = `Role: ${ROLE_MAP[userRole]}`;
+
+                const net = await window.aptos.network();
+                document.getElementById('network-name').textContent = net.name || 'Testnet';
+
+                updateButtons();
+                toast(`Connected as ${ROLE_MAP[userRole]}`);
+            } catch (err) {
+                console.error(err);
+                toast("Wallet connection failed", true);
+            }
+        });
+
+        // Register Land
+        document.getElementById('register-btn').addEventListener('click', async () => {
+            const owner = document.getElementById('reg-owner').value.trim();
+            const coords = document.getElementById('reg-coords').value.trim();
+            const doc = document.getElementById('reg-doc').value.trim();
+            const area = document.getElementById('reg-area').value.trim();
+
+            if (!isValidAddr(owner)) return toast("Invalid owner address format", true);
+            if (!coords || !doc || !area) return toast("Please fill all required fields", true);
+
+            await txn('register_land', [owner, coords, doc, area], 
+                document.getElementById('register-result'), 
+                document.getElementById('register-btn'));
+        });
+
+        // Approve Land
+        document.getElementById('approve-btn').addEventListener('click', async () => {
+            const id = document.getElementById('approve-id').value.trim();
+            if (!id || id <= 0) return toast("Invalid Land ID", true);
+
+            await txn('approve_land', [id], 
+                document.getElementById('approve-result'), 
+                document.getElementById('approve-btn'));
+        });
+
+        // Finalize Land
+        document.getElementById('finalize-btn').addEventListener('click', async () => {
+            const id = document.getElementById('finalize-id').value.trim();
+            if (!id || id <= 0) return toast("Invalid Land ID", true);
+
+            await txn('finalize_land', [id], 
+                document.getElementById('finalize-result'), 
+                document.getElementById('finalize-btn'));
+        });
+
+        // Transfer Land
+        document.getElementById('transfer-btn').addEventListener('click', async () => {
+            const id = document.getElementById('transfer-id').value.trim();
+            const newOwner = document.getElementById('transfer-new-owner').value.trim();
+
+            if (!id || id <= 0) return toast("Invalid Land ID", true);
+            if (!isValidAddr(newOwner)) return toast("Invalid new owner address format", true);
+
+            await txn('transfer_land', [id, newOwner], 
+                document.getElementById('transfer-result'), 
+                document.getElementById('transfer-btn'));
+        });
+
+        // Assign Role
+        document.getElementById('admin-assign-btn').addEventListener('click', async () => {
+            const addr = document.getElementById('admin-address').value.trim();
+            const role = document.getElementById('admin-role').value;
+
+            if (!isValidAddr(addr)) return toast("Invalid address format", true);
+
+            await txn('assign_role', [addr, role], 
+                document.getElementById('admin-result'), 
+                document.getElementById('admin-assign-btn'));
+        });
+
+        // Land Explorer
+        document.getElementById('explorer-btn').addEventListener('click', async () => {
+            const id = document.getElementById('explorer-id').value.trim();
+            if (!id || id <= 0) return toast("Invalid Land ID", true);
+
+            const resultDiv = document.getElementById('explorer-result');
+            resultDiv.innerHTML = '<div class="flex items-center justify-center py-12"><div class="loader"></div></div>';
+
+            try {
+                const res = await client.view({
+                    function: `${FULL_MODULE}::get_land_details`,
                     type_arguments: [],
-                    arguments: [landId],
+                    arguments: [id],
                 });
 
-                const land = response[0];
+                const land = res[0];
+                const statusColor = {1: 'yellow', 2: 'blue', 3: 'green', 99: 'red'}[land.status] || 'gray';
+                
                 resultDiv.innerHTML = `
-                    <p><strong>Land ID:</strong> ${land.land_id}</p>
-                    <p><strong>Owner:</strong> ${land.owner_wallet}</p>
-                    <p><strong>Area:</strong> ${land.area_sq_meters} sqm</p>
-                    <p><strong>Status:</strong> ${STATUS_MAP[land.status] || 'Unknown'} (${land.status})</p>
-                    <p><strong>Coordinates CID:</strong> ${land.coordinates_cid}</p>
-                    <p><strong>Document CID:</strong> ${land.document_cid}</p>
-                    <p><strong>Last Verified By:</strong> ${land.last_verified_by}</p>
-                    <p><strong>Last Updated:</strong> ${new Date(land.last_updated_timestamp * 1000).toLocaleString()}</p>
+                    <div class="border-b-2 border-gray-200 pb-4 mb-4">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h4 class="text-xl font-bold text-gray-800">Land Record #${land.land_id}</h4>
+                                <p class="text-sm text-gray-600 mt-1">Official Property Documentation</p>
+                            </div>
+                            <span class="status-badge bg-${statusColor}-100 text-${statusColor}-800 border border-${statusColor}-300">
+                                ${STATUS_MAP[land.status] || 'Unknown'}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-gray-50 border border-gray-200 rounded p-4">
+                            <p class="text-xs font-semibold text-gray-500 mb-2">PROPERTY OWNER</p>
+                            <p class="text-sm font-mono break-all text-gray-800">${land.owner_wallet}</p>
+                        </div>
+                        <div class="bg-gray-50 border border-gray-200 rounded p-4">
+                            <p class="text-xs font-semibold text-gray-500 mb-2">LAND AREA</p>
+                            <p class="text-lg font-bold text-gray-800">${land.area_sq_meters.toLocaleString()} m²</p>
+                            <p class="text-xs text-gray-600">${(land.area_sq_meters * 0.000247105).toFixed(2)} acres</p>
+                        </div>
+                        <div class="bg-gray-50 border border-gray-200 rounded p-4">
+                            <p class="text-xs font-semibold text-gray-500 mb-2">COORDINATES (IPFS)</p>
+                            <a href="https://ipfs.io/ipfs/${land.coordinates_cid}" target="_blank" class="text-sm text-blue-700 hover:underline break-all">${land.coordinates_cid}</a>
+                        </div>
+                        <div class="bg-gray-50 border border-gray-200 rounded p-4">
+                            <p class="text-xs font-semibold text-gray-500 mb-2">DOCUMENTS (IPFS)</p>
+                            <a href="https://ipfs.io/ipfs/${land.document_cid}" target="_blank" class="text-sm text-blue-700 hover:underline break-all">${land.document_cid}</a>
+                        </div>
+                        <div class="bg-gray-50 border border-gray-200 rounded p-4">
+                            <p class="text-xs font-semibold text-gray-500 mb-2">LAST VERIFIED BY</p>
+                            <p class="text-sm font-mono break-all text-gray-800">${land.last_verified_by}</p>
+                        </div>
+                        <div class="bg-gray-50 border border-gray-200 rounded p-4">
+                            <p class="text-xs font-semibold text-gray-500 mb-2">LAST UPDATED</p>
+                            <p class="text-sm text-gray-800">${new Date(land.last_updated_timestamp * 1000).toLocaleString()}</p>
+                        </div>
+                    </div>
                 `;
-                showStatus(`Land details fetched for ID ${landId}`);
-            } catch (error) {
-                console.error("View error:", error);
-                resultDiv.textContent = `Error: ${error.message || 'Land not found'}`;
-                showStatus("Failed to fetch land details.", true);
+                toast(`Land record #${id} retrieved successfully`);
+            } catch (err) {
+                console.error(err);
+                resultDiv.innerHTML = `<p class="text-red-700 text-center py-12 text-sm">Land record not found or error occurred: ${err.message}</p>`;
+                toast("Failed to retrieve land record", true);
             }
         });
 
-        // Initialize on load
+        // My Lands
+        document.getElementById('refresh-lands-btn').addEventListener('click', async () => {
+            if (!wallet) return toast("Please connect your wallet first", true);
+
+            const listDiv = document.getElementById('my-lands-list');
+            listDiv.innerHTML = '<div class="flex items-center justify-center py-12"><div class="loader"></div></div>';
+
+            try {
+                const lands = [];
+                for (let i = 1; i <= 50; i++) {
+                    try {
+                        const res = await client.view({
+                            function: `${FULL_MODULE}::get_land_details`,
+                            type_arguments: [],
+                            arguments: [i.toString()],
+                        });
+                        if (res[0].owner_wallet === wallet) {
+                            lands.push(res[0]);
+                        }
+                    } catch {
+                        // Land doesn't exist, continue
+                    }
+                }
+
+                if (lands.length === 0) {
+                    listDiv.innerHTML = '<p class="text-gray-500 text-sm text-center py-12">No property records found under your ownership</p>';
+                } else {
+                    listDiv.innerHTML = lands.map(land => {
+                        const statusColor = {1: 'yellow', 2: 'blue', 3: 'green', 99: 'red'}[land.status] || 'gray';
+                        return `
+                            <div class="bg-white border border-gray-300 rounded p-4 hover:border-blue-400 transition-all">
+                                <div class="flex justify-between items-start mb-3">
+                                    <div>
+                                        <p class="text-base font-bold text-gray-800">Land Record #${land.land_id}</p>
+                                        <p class="text-sm text-gray-600">${land.area_sq_meters.toLocaleString()} m² • ${(land.area_sq_meters * 0.000247105).toFixed(2)} acres</p>
+                                    </div>
+                                    <span class="status-badge bg-${statusColor}-100 text-${statusColor}-800 border border-${statusColor}-300">
+                                        ${STATUS_MAP[land.status]}
+                                    </span>
+                                </div>
+                                <div class="grid grid-cols-2 gap-3 text-xs">
+                                    <div class="bg-gray-50 p-2 rounded">
+                                        <p class="text-gray-500 font-semibold mb-1">Coordinates</p>
+                                        <p class="font-mono truncate">${land.coordinates_cid}</p>
+                                    </div>
+                                    <div class="bg-gray-50 p-2 rounded">
+                                        <p class="text-gray-500 font-semibold mb-1">Last Updated</p>
+                                        <p>${new Date(land.last_updated_timestamp * 1000).toLocaleDateString()}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                    toast(`Found ${lands.length} property record(s)`);
+                }
+            } catch (err) {
+                console.error(err);
+                listDiv.innerHTML = '<p class="text-red-700 text-center text-sm py-12">Error loading property records</p>';
+                toast("Failed to load property records", true);
+            }
+        });
+
+        // Auto-connect on load
         (async () => {
             if (window.aptos && window.aptos.isConnected) {
                 try {
-                    const account = await window.aptos.account();
-                    walletAddress = account.address;
-                    userRole = await getUserRole(walletAddress);
+                    const acc = await window.aptos.account();
+                    wallet = acc.address;
+                    userRole = await getRole(wallet);
 
-                    document.getElementById('connect-button').classList.add('hidden');
-                    document.getElementById('account-info').classList.remove('hidden');
-                    document.getElementById('wallet-address-display').textContent = `${walletAddress.substring(0, 8)}...${walletAddress.slice(-6)}`;
-                    document.getElementById('user-role-display').textContent = ROLE_MAP[userRole];
-                    document.getElementById('user-role-display').className = userRole > 0 ? 'text-green-600' : 'text-red-500';
+                    document.getElementById('connect-wallet-btn').classList.add('hidden');
+                    document.getElementById('wallet-info').classList.remove('hidden');
+                    document.getElementById('network-badge').classList.remove('hidden');
+                    document.getElementById('wallet-address').textContent = `${wallet.substring(0, 6)}...${wallet.slice(-4)}`;
+                    document.getElementById('user-role').textContent = `Role: ${ROLE_MAP[userRole]}`;
 
-                    updateButtonStates();
+                    updateButtons();
                 } catch (e) {
                     console.error("Auto-connect failed:", e);
                 }

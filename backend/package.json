@@ -1,22 +1,26 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "description": "",
+  "description": "Digital Land Registry Backend",
   "main": "server.js",
   "type": "module",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "build": "echo \"No build step required\""
   },
   "keywords": [],
-  "author": "",
+  "author": "Daksh",
   "license": "ISC",
+  "engines": {
+    "node": ">=18"
+  },
   "dependencies": {
     "axios": "^1.13.1",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
     "form-data": "^4.0.4",
-    "multer": "^2.0.2",
-    "pg": "^8.16.3"
+    "mongoose": "^8.7.0",
+    "multer": "^2.0.2"
   }
 }
